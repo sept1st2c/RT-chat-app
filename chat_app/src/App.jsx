@@ -25,8 +25,36 @@ function App() {
   const [username] = useState(pkmnTrainers[Math.floor(Math.random() * 10)]);
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
-  const [typing, setTyping] = useState("");
-  const [dotCount, setDotCount] = useState(1);
+  const [typingUser, setTypingUser] = useState("");
+  const [dotCount, setDotCount] = useState(1); // This will represent the number of dots.
+
+  //
+  //
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDotCount((prevCount) => (prevCount % 3) + 1); // This will cycle the count between 1 and 3.
+    }, 500);
+
+    // Cleanup: Clear the interval when the component unmounts.
+    return () => clearInterval(interval);
+  }, []);
+  console.log("Socket:", socket);
+  if (socket) {
+    socket.on("user-typing", (user) => {
+      console.log(user, "is typing - received from server");
+      console.log("Typing user before:", typingUser);
+      setTypingUser(user);
+      console.log("Typing user after:", typingUser);
+    });
+    // socket.emit("stop-typing", username);
+    socket.on("user-stop-typing", (user) => {
+      console.log(user, "stopped typing - received from server");
+      console.log("Typing user before:", typingUser);
+      if (typingUser == user) setTypingUser("");
+      console.log("Typing user after:", typingUser);
+    });
+  }
 
   //
   //
@@ -86,22 +114,39 @@ function App() {
     setMessage("");
   }
   return (
-    <>
-      <h1>Chat app</h1>
-      <div className="message-container">
-        <div className="message right">you joined the chat</div>
-        <div className="message left">Mimic Tear joined the chat</div>
+    <main>
+      <h1>Neo Chat App React</h1>
+      <div id="message-container">
+        <div className="message right">You joined the chat</div>
+        {chat.map((message, index) => {
+          return (
+            <div key={index} className={"message " + message.dir}>
+              {message.user
+                ? `${message.user}: ${message.message}`
+                : message.message}
+            </div>
+          );
+        })}
+        {typingUser && (
+          <div className="message left">
+            {typingUser} is typing
+            {dotCount === 1 ? "." : dotCount === 2 ? ".." : "..."}
+          </div>
+        )}
       </div>
-      <div className="send-container">
+      <form id="send-container">
         <input
+          id="message-input"
           type="text"
-          placeholder="Enter message"
-          value={message}
+          placeholder="Enter Message"
           onChange={writeMessage}
+          value={message}
         />
-        <button onClick={handleSubmit}>Send</button>
-      </div>
-    </>
+        <button id="send-button" onClick={handleSubmit}>
+          Send
+        </button>
+      </form>
+    </main>
   );
 }
 
