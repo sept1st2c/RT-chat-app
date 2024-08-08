@@ -87,18 +87,43 @@ function App() {
     return () => {
       socket.off("chat-message");
       socket.off("user-connected");
-
       socket.off("user-disconnected");
+      socket.off("user-typing");
+      socket.off("user-stop-typing");
     };
+    // socket.emit("send-chat-message", "Eevee use tackle");
   }, []);
-
   ///
   ///
 
   function writeMessage(e) {
-    const currMessage = e.target.value;
-    setMessage(currMessage);
-    // console.log(currMessage)
+    const curMessage = e.target.value;
+    // console.log(message);
+    setMessage(curMessage);
+    if (curMessage == "") {
+      socket.emit("stop-typing", username);
+      console.log("Sending stop-typing to server");
+    } else {
+      socket.emit("typing", username);
+      console.log("Sending typing to server");
+    }
+    // console.log(`${username}: ${curMessage}`);
+  }
+  console.log("Socket:", socket);
+  if (socket) {
+    socket.on("user-typing", (user) => {
+      console.log(user, "is typing - received from server");
+      console.log("Typing user before:", typingUser);
+      setTypingUser(user);
+      console.log("Typing user after:", typingUser);
+    });
+    // socket.emit("stop-typing", username);
+    socket.on("user-stop-typing", (user) => {
+      console.log(user, "stopped typing - received from server");
+      console.log("Typing user before:", typingUser);
+      if (typingUser == user) setTypingUser("");
+      console.log("Typing user after:", typingUser);
+    });
   }
 
   //
@@ -113,6 +138,7 @@ function App() {
     socket.emit("send-chat-message", message);
     setMessage("");
   }
+
   return (
     <main>
       <h1>Neo Chat App React</h1>
