@@ -141,7 +141,7 @@ function App() {
 
   return (
     <main>
-      <h1>Neo Chat App React</h1>
+      <h1>ORV ;) </h1>
       <div id="message-container">
         <div className="message right">You joined the chat</div>
         {chat.map((message, index) => {
